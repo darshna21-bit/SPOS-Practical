@@ -6,18 +6,18 @@ public class Fifo { // Class name must match file name: Fifo.java
 
     public static void main(String[] args) {
 
-        // Step 1️⃣: Create Scanner object to take input from the user
+        // Create Scanner object to take input from the user
         Scanner scanner = new Scanner(System.in);
 
-        // Step 2️⃣: Input number of frames (slots in physical memory)
+        // Input number of frames (slots in physical memory)
         System.out.print("Enter the number of frames: ");
         int numberOfFrames = scanner.nextInt();
 
-        // Step 3️⃣: Input number of pages (length of reference string)
+        // Input number of pages (length of reference string)
         System.out.print("Enter the number of pages: ");
         int numberOfPages = scanner.nextInt();
 
-        // Step 4️⃣: Input the reference string of pages
+        // Input the reference string of pages
         System.out.print("Enter the page reference string (space-separated): ");
         int[] pageReferenceString = new int[numberOfPages];
 
@@ -26,19 +26,19 @@ public class Fifo { // Class name must match file name: Fifo.java
             pageReferenceString[i] = scanner.nextInt();
         }
 
-        // Step 5️⃣: Initialize the memory frames with -1 (indicating empty)
+        // Initialize the memory frames with -1 (indicating empty)
         int[] frames = new int[numberOfFrames];
         Arrays.fill(frames, -1); // Fill all frames as empty (-1)
 
-        // Step 6️⃣: Initialize counters and index pointer
+        // Initialize counters and index pointer
         int pageFaults = 0;  // To count total page faults
         int currentIndex = 0; // To track which frame to replace (FIFO order)
 
-        // Step 7️⃣: Process each page from the reference string
+        // Process each page from the reference string
         for (int page : pageReferenceString) {
             boolean pageHit = false; // Flag to check if page already exists in frames
 
-            // Step 8️⃣: Check if the current page is already loaded in memory
+            // Check if the current page is already loaded in memory
             for (int frame : frames) {
                 if (frame == page) {
                     pageHit = true; // Page is already present (page hit)
@@ -46,7 +46,7 @@ public class Fifo { // Class name must match file name: Fifo.java
                 }
             }
 
-            // Step 9️⃣: If page not found → Page Fault occurs
+            // If page not found → Page Fault occurs
             if (!pageHit) {
                 // Replace the oldest page with the new one (FIFO)
                 frames[currentIndex] = page;
@@ -58,7 +58,7 @@ public class Fifo { // Class name must match file name: Fifo.java
                 pageFaults++;
             }
 
-            // Step 🔟: Display current state of frames
+            // Display current state of frames
             System.out.print("Frames: ");
             for (int frame : frames) {
                 System.out.print(frame + " ");
@@ -69,7 +69,7 @@ public class Fifo { // Class name must match file name: Fifo.java
         System.out.println("Total Page Faults: " + pageFaults);
         System.out.println("Page Faults ratio: " + pageFaults + ":" + numberOfPages);
 
-        // Step 12️⃣: Close Scanner to prevent resource leak
+        // Close Scanner to prevent resource leak
         scanner.close();
     }
 }
