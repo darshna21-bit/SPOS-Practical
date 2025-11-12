@@ -1,0 +1,93 @@
+package cpuscheduling;   
+
+import java.util.Scanner;  // Import Scanner for user input
+
+public class Priority_nonpreemptive {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);   // Create Scanner object
+
+        // Input number of processes
+        System.out.print("Enter number of processes: ");
+        int n = sc.nextInt();
+
+        // Declare arrays for process data
+        int[] processID = new int[n];
+        int[] arrivalTime = new int[n];
+        int[] burstTime = new int[n];
+        int[] priority = new int[n];
+        int[] completionTime = new int[n];
+        int[] turnaroundTime = new int[n];
+        int[] waitingTime = new int[n];
+        boolean[] isCompleted = new boolean[n];  // Track whether process is finished
+
+        // Input process details
+        for (int i = 0; i < n; i++) {
+            processID[i] = i + 1;
+
+            System.out.print("Enter arrival time for P" + processID[i] + ": ");
+            arrivalTime[i] = sc.nextInt();
+
+            System.out.print("Enter burst time for P" + processID[i] + ": ");
+            burstTime[i] = sc.nextInt();
+
+            System.out.print("Enter priority for P" + processID[i] + " (smaller number = higher priority): ");
+            priority[i] = sc.nextInt();
+        }
+
+        // Initialize scheduling variables
+        int completed = 0;        // Number of completed processes
+        int currentTime = 0;      // Simulation time (CPU clock)
+        float totalTAT = 0, totalWT = 0;  // For average calculation
+
+        // Scheduling loop
+        while (completed != n) {
+            int currentProcess = -1;             // Index of process to execute
+            int highestPriority = Integer.MAX_VALUE;  // Smallest number means higher priority
+
+            // Select process with highest priority that has arrived
+            for (int i = 0; i < n; i++) {
+                if (arrivalTime[i] <= currentTime && !isCompleted[i]) {
+                    if (priority[i] < highestPriority) {
+                        highestPriority = priority[i];
+                        currentProcess = i;
+                    }
+                }
+            }
+
+            //  If no process has arrived, CPU is idle
+            if (currentProcess == -1) {
+                currentTime++;  // Move time ahead
+                continue;
+            }
+
+            //  Execute the selected process (non-preemptive)
+            currentTime += burstTime[currentProcess];
+            completionTime[currentProcess] = currentTime;   // When process finishes
+
+            //  Calculate TAT and WT
+            turnaroundTime[currentProcess] = completionTime[currentProcess] - arrivalTime[currentProcess];
+            waitingTime[currentProcess] = turnaroundTime[currentProcess] - burstTime[currentProcess];
+
+            //  Mark process as completed
+            isCompleted[currentProcess] = true;
+            completed++;
+
+            // Add to totals
+            totalTAT += turnaroundTime[currentProcess];
+            totalWT += waitingTime[currentProcess];
+        }
+
+        //  Display output
+        System.out.println("\nProcess\tAT\tBT\tPri\tCT\tTAT\tWT");
+        for (int i = 0; i < n; i++) {
+            System.out.println("P" + processID[i] + "\t" + arrivalTime[i] + "\t" + burstTime[i] + "\t" +
+                    priority[i] + "\t" + completionTime[i] + "\t" + turnaroundTime[i] + "\t" + waitingTime[i]);
+        }
+
+        // Print average times
+        System.out.printf("\nAverage Turnaround Time: %.2f", totalTAT / n);
+        System.out.printf("\nAverage Waiting Time: %.2f\n", totalWT / n);
+
+        sc.close();   // Close Scanner
+    }
+}
