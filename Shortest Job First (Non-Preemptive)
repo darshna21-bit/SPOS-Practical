@@ -1,0 +1,92 @@
+package cpuscheduling;   
+import java.util.Scanner;   // Import Scanner for user input
+
+public class SJFNP {   // Class for Shortest Job First (Non-Preemptive)
+    public static void main(String[] args) {
+
+        Scanner sc = new Scanner(System.in);
+
+        // Take input for number of processes
+        System.out.print("Enter number of processes: ");
+        int n = sc.nextInt();
+
+        // Declare arrays
+        int[] processID = new int[n];
+        int[] arrivalTime = new int[n];
+        int[] burstTime = new int[n];
+        int[] completionTime = new int[n];
+        int[] turnaroundTime = new int[n];
+        int[] waitingTime = new int[n];
+        boolean[] isCompleted = new boolean[n];  // Track finished processes
+
+        // Input arrival and burst times
+        for (int i = 0; i < n; i++) {
+            processID[i] = i + 1;
+
+            System.out.print("Enter arrival time for Process " + processID[i] + ": ");
+            arrivalTime[i] = sc.nextInt();
+
+            System.out.print("Enter burst time for Process " + processID[i] + ": ");
+            burstTime[i] = sc.nextInt();
+        }
+
+        // Initialize variables
+        int completed = 0;
+        int currentTime = 0;
+        int totalWT = 0;
+        int totalTAT = 0;
+
+        // Main scheduling loop
+        while (completed != n) {
+            int currentProcess = -1;
+            int minBurst = Integer.MAX_VALUE;
+
+            // Find process with shortest burst among arrived ones
+            for (int i = 0; i < n; i++) {
+                if (arrivalTime[i] <= currentTime && !isCompleted[i]) {
+                    if (burstTime[i] < minBurst) {
+                        minBurst = burstTime[i];
+                        currentProcess = i;
+                    } else if (burstTime[i] == minBurst && arrivalTime[i] < arrivalTime[currentProcess]) {
+                        currentProcess = i;  // Tie-break: earlier arrival
+                    }
+                }
+            }
+
+            // If no process has arrived, increment time
+            if (currentProcess == -1) {
+                currentTime++;
+                continue;
+            }
+
+            // Execute the selected process fully (non-preemptive)
+            currentTime += burstTime[currentProcess];
+            completionTime[currentProcess] = currentTime;
+
+            // Calculate TAT and WT
+            turnaroundTime[currentProcess] = completionTime[currentProcess] - arrivalTime[currentProcess];
+            waitingTime[currentProcess] = turnaroundTime[currentProcess] - burstTime[currentProcess];
+
+            // Update totals
+            totalTAT += turnaroundTime[currentProcess];
+            totalWT += waitingTime[currentProcess];
+
+            // Mark as completed
+            isCompleted[currentProcess] = true;
+            completed++;
+        }
+
+        // Print process details
+        System.out.println("\nProcess\tAT\tBT\tCT\tTAT\tWT");
+        for (int i = 0; i < n; i++) {
+            System.out.println("P" + processID[i] + "\t" + arrivalTime[i] + "\t" + burstTime[i] + "\t" +
+                    completionTime[i] + "\t" + turnaroundTime[i] + "\t" + waitingTime[i]);
+        }
+
+        // Print averages
+        System.out.printf("\nAverage Turnaround Time: %.2f", (float) totalTAT / n);
+        System.out.printf("\nAverage Waiting Time: %.2f\n", (float) totalWT / n);
+
+        sc.close();  // Close scanner
+    }
+}
