@@ -1,0 +1,94 @@
+package cpuscheduling;   // Define package
+
+import java.util.Scanner;  // For user input
+
+public class SRTF {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        // 🧩 Step 1: Input number of processes
+        System.out.print("Enter number of processes: ");
+        int n = sc.nextInt();
+
+        // 🧮 Step 2: Declare arrays
+        int[] processID = new int[n];
+        int[] arrivalTime = new int[n];
+        int[] burstTime = new int[n];
+        int[] remainingTime = new int[n];
+        int[] completionTime = new int[n];
+        int[] turnaroundTime = new int[n];
+        int[] waitingTime = new int[n];
+
+        // 🧾 Step 3: Take input for each process
+        for (int i = 0; i < n; i++) {
+            processID[i] = i + 1;
+
+            System.out.print("Enter arrival time for Process " + processID[i] + ": ");
+            arrivalTime[i] = sc.nextInt();
+
+            System.out.print("Enter burst time for Process " + processID[i] + ": ");
+            burstTime[i] = sc.nextInt();
+
+            remainingTime[i] = burstTime[i];  // Initially all burst time is remaining
+        }
+
+        // ⚙️ Step 4: Initialize variables
+        int completed = 0;
+        int currentTime = 0;
+        int totalWT = 0;
+        int totalTAT = 0;
+
+        // 🔁 Step 5: Main scheduling loop
+        while (completed != n) {
+            int currentProcess = -1;
+            int minRemaining = Integer.MAX_VALUE;
+
+            // 🔍 Step 6: Select process with smallest remaining time among arrived ones
+            for (int i = 0; i < n; i++) {
+                if (arrivalTime[i] <= currentTime && remainingTime[i] > 0 && remainingTime[i] < minRemaining) {
+                    minRemaining = remainingTime[i];
+                    currentProcess = i;
+                }
+            }
+
+            // ⏳ Step 7: If no process has arrived, increment currentTime
+            if (currentProcess == -1) {
+                currentTime++;
+                continue;
+            }
+
+            // ⚡ Step 8: Execute process for 1 time unit (Preemptive execution)
+            remainingTime[currentProcess]--;
+            currentTime++;
+
+            // ✅ Step 9: If process finishes, compute CT, TAT, WT
+            if (remainingTime[currentProcess] == 0) {
+                completed++;
+                completionTime[currentProcess] = currentTime;
+
+                turnaroundTime[currentProcess] = completionTime[currentProcess] - arrivalTime[currentProcess];
+                waitingTime[currentProcess] = turnaroundTime[currentProcess] - burstTime[currentProcess];
+
+                totalWT += waitingTime[currentProcess];
+                totalTAT += turnaroundTime[currentProcess];
+            }
+        }
+
+        // 📤 Step 10: Output results
+        System.out.println("\nProcess\tAT\tBT\tCT\tTAT\tWT");
+        for (int i = 0; i < n; i++) {
+            System.out.println("P" + processID[i] + "\t" +
+                    arrivalTime[i] + "\t" +
+                    burstTime[i] + "\t" +
+                    completionTime[i] + "\t" +
+                    turnaroundTime[i] + "\t" +
+                    waitingTime[i]);
+        }
+
+        // 🧮 Step 11: Print averages
+        System.out.printf("\nAverage Turnaround Time: %.2f", (float) totalTAT / n);
+        System.out.printf("\nAverage Waiting Time: %.2f\n", (float) totalWT / n);
+
+        sc.close();  // 🧹 Close Scanner
+    }
+}
