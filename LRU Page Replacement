@@ -1,4 +1,4 @@
-// 🧠 LRU (Least Recently Used) Page Replacement Algorithm in Java
+// LRU (Least Recently Used) Page Replacement Algorithm in Java
 // This program simulates how an OS replaces pages in memory using the LRU method.
 // It removes the page that was least recently used when a new page needs to be loaded.
 
@@ -6,18 +6,18 @@ import java.util.*;
 public class Lru {   
     public static void main(String[] args) {
 
-        // Step 1️⃣: Create Scanner object to read user input
+        // Create Scanner object to read user input
         Scanner scanner = new Scanner(System.in);
 
-        // Step 2️⃣: Get number of frames (memory slots)
+        // Get number of frames (memory slots)
         System.out.print("Enter the number of frames: ");
         int numberOfFrames = scanner.nextInt();
 
-        // Step 3️⃣: Get number of pages (reference string length)
+        // Get number of pages (reference string length)
         System.out.print("Enter the number of pages: ");
         int numberOfPages = scanner.nextInt();
 
-        // Step 4️⃣: Input the page reference string (sequence of page requests)
+        // Input the page reference string (sequence of page requests)
         System.out.print("Enter the page reference string (space-separated): ");
         int[] pageReferenceString = new int[numberOfPages];
 
@@ -26,13 +26,13 @@ public class Lru {
             pageReferenceString[i] = scanner.nextInt();
         }
 
-        // Step 5️⃣: Create a LinkedList to represent frames in memory
+        // Create a LinkedList to represent frames in memory
         // We use LinkedList because we can easily remove and add pages to track usage order
         LinkedList<Integer> frames = new LinkedList<>();
 
         int pageFaults = 0;
 
-        // Step 6️⃣: Iterate through each page in the reference string
+        // Iterate through each page in the reference string
         for (int page : pageReferenceString) {
 
             // If the current page is NOT present in memory (page fault)
@@ -56,7 +56,7 @@ public class Lru {
                 frames.addLast(page);
             }
 
-            // Step 7️⃣: Display current state of frames after each operation
+            // Display current state of frames after each operation
             System.out.print("Frames: ");
             for (int frame : frames) {
                 System.out.print(frame + " ");
