@@ -1,0 +1,102 @@
+package cpuscheduling;  
+import java.util.Scanner;
+
+public class RoundRobinSimple {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);  // Create Scanner object to take input
+
+        // Input number of processes
+        System.out.print("Enter number of processes: ");
+        int n = sc.nextInt();  // Read total number of processes
+
+        // Arrays to store information for each process
+        int[] processID = new int[n];       // Process IDs (P1, P2, ...)
+        int[] arrivalTime = new int[n];     // When process arrives in ready queue
+        int[] burstTime = new int[n];       // Total CPU time needed by the process
+        int[] remainingTime = new int[n];   // Remaining burst time (used for preemption)
+        int[] completionTime = new int[n];  // When process finishes execution
+        int[] turnaroundTime = new int[n];  // TAT = CT - AT
+        int[] waitingTime = new int[n];     // WT = TAT - BT
+
+        // Read arrival and burst time for each process
+        for (int i = 0; i < n; i++) {
+            processID[i] = i + 1;  // Assign process ID (e.g., P1 = 1)
+            
+            System.out.print("Enter arrival time for P" + processID[i] + ": ");
+            arrivalTime[i] = sc.nextInt();  // Input arrival time
+            
+            System.out.print("Enter burst time for P" + processID[i] + ": ");
+            burstTime[i] = sc.nextInt();  // Input burst time
+            
+            remainingTime[i] = burstTime[i];  // Initially, remaining time = burst time
+        }
+
+        //Input Time Quantum
+        System.out.print("Enter Time Quantum: ");
+        int quantum = sc.nextInt();  // Fixed time slice for each process
+
+        // Initialize scheduler variables
+        int currentTime = 0;      // Keeps track of current CPU time
+        int completed = 0;        // Number of processes completed
+        float totalTAT = 0;       // Total Turnaround Time (for average)
+        float totalWT = 0;        // Total Waiting Time (for average)
+        boolean[] isCompleted = new boolean[n];  // Tracks whether process is done
+
+        // Main Scheduling Loop (runs until all processes complete)
+        while (completed != n) {
+            boolean anyExecuted = false;  // To check if at least one process ran in this cycle
+
+            // Loop through all processes
+            for (int i = 0; i < n; i++) {
+
+                // Condition: process has arrived and not yet completed
+                if (arrivalTime[i] <= currentTime && remainingTime[i] > 0) {
+                    anyExecuted = true;  // CPU is busy this time unit
+
+                    // ⏱️ Case 1: Remaining time > quantum (needs more time)
+                    if (remainingTime[i] > quantum) {
+                        currentTime += quantum;        // Run process for 1 quantum
+                        remainingTime[i] -= quantum;   // Subtract that time from remaining time
+                    } 
+                    // ⏱️ Case 2: Remaining time ≤ quantum (process finishes)
+                    else {
+                        currentTime += remainingTime[i];  // Add remaining time to current time
+                        remainingTime[i] = 0;             // Process finished
+                        completionTime[i] = currentTime;   // Record completion time
+
+                        // Calculate Turnaround and Waiting Time
+                        turnaroundTime[i] = completionTime[i] - arrivalTime[i];
+                        waitingTime[i] = turnaroundTime[i] - burstTime[i];
+
+                        // Add to totals for average calculation
+                        totalTAT += turnaroundTime[i];
+                        totalWT += waitingTime[i];
+
+                        isCompleted[i] = true;  // Mark process as completed
+                        completed++;            // Increase count of completed processes
+                    }
+                }
+            }
+
+            // Handle Idle CPU Time
+            if (!anyExecuted) {
+                currentTime++;  // If no process ready, increment time (CPU idle)
+            }
+        }
+
+        // Print Process Table
+        System.out.println("\nProcess\tAT\tBT\tCT\tTAT\tWT");
+        for (int i = 0; i < n; i++) {
+            System.out.println("P" + processID[i] + "\t" + 
+                               arrivalTime[i] + "\t" + 
+                               burstTime[i] + "\t" + 
+                               completionTime[i] + "\t" + 
+                               turnaroundTime[i] + "\t" + 
+                               waitingTime[i]);
+        }
+
+        // Print Average Times
+        System.out.printf("\nAverage Turnaround Time: %.2f", totalTAT / n);
+        System.out.printf("\nAverage Waiting Time: %.2f\n", totalWT / n);
+    }
+}
