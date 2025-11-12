@@ -1,0 +1,96 @@
+package cpuscheduling;   
+import java.util.Scanner;   // Import Scanner class for user input
+
+public class RoundRobin_NonPreemptive {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);   // Create Scanner object to take input
+
+        // Take number of processes
+        System.out.print("Enter number of processes: ");
+        int n = sc.nextInt();   // Read number of processes
+
+        // Arrays to store process information
+        int[] processID = new int[n];
+        int[] arrivalTime = new int[n];
+        int[] burstTime = new int[n];
+        int[] completionTime = new int[n];
+        int[] turnaroundTime = new int[n];
+        int[] waitingTime = new int[n];
+
+        // Input process details (arrival & burst times)
+        for (int i = 0; i < n; i++) {
+            processID[i] = i + 1;  // Assign process ID (P1, P2, P3...)
+
+            System.out.print("Enter arrival time for P" + processID[i] + ": ");
+            arrivalTime[i] = sc.nextInt();  // Input arrival time
+
+            System.out.print("Enter burst time for P" + processID[i] + ": ");
+            burstTime[i] = sc.nextInt();  // Input burst time
+        }
+
+        // Ask for Time Quantum (only for display, not used)
+        System.out.print("Enter Time Quantum (Not used, since non-preemptive): ");
+        int quantum = sc.nextInt();  // Just to maintain same format as preemptive RR
+
+        // Sort processes by arrival time (like FCFS)
+        for (int i = 0; i < n - 1; i++) {
+            for (int j = i + 1; j < n; j++) {
+                if (arrivalTime[i] > arrivalTime[j]) {
+                    // Swap arrival times
+                    int temp = arrivalTime[i];
+                    arrivalTime[i] = arrivalTime[j];
+                    arrivalTime[j] = temp;
+
+                    // Swap burst times
+                    temp = burstTime[i];
+                    burstTime[i] = burstTime[j];
+                    burstTime[j] = temp;
+
+                    // Swap process IDs
+                    temp = processID[i];
+                    processID[i] = processID[j];
+                    processID[j] = temp;
+                }
+            }
+        }
+
+        // Scheduling logic (Non-preemptive)
+        int currentTime = 0;      // Tracks the current time of CPU
+        float totalTAT = 0;       // Sum of all turnaround times
+        float totalWT = 0;        // Sum of all waiting times
+
+        for (int i = 0; i < n; i++) {
+            // If CPU is idle (no process has arrived yet)
+            if (currentTime < arrivalTime[i]) {
+                currentTime = arrivalTime[i];  // Jump time to next process arrival
+            }
+
+            // Process runs fully (no preemption)
+            currentTime += burstTime[i];         // CPU executes process completely
+            completionTime[i] = currentTime;      // When process finishes
+
+            // Calculate Turnaround Time and Waiting Time
+            turnaroundTime[i] = completionTime[i] - arrivalTime[i];
+            waitingTime[i] = turnaroundTime[i] - burstTime[i];
+
+            // Add to totals for averages
+            totalTAT += turnaroundTime[i];
+            totalWT += waitingTime[i];
+        }
+
+        // Display Output Table
+        System.out.println("\nProcess\tAT\tBT\tCT\tTAT\tWT");
+        for (int i = 0; i < n; i++) {
+            System.out.println("P" + processID[i] + "\t" +
+                    arrivalTime[i] + "\t" +
+                    burstTime[i] + "\t" +
+                    completionTime[i] + "\t" +
+                    turnaroundTime[i] + "\t" +
+                    waitingTime[i]);
+        }
+
+        // Print Average TAT and WT
+        System.out.printf("\nAverage Turnaround Time: %.2f", totalTAT / n);
+        System.out.printf("\nAverage Waiting Time: %.2f\n", totalWT / n);
+    }
+}
