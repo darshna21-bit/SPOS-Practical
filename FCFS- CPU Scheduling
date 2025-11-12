@@ -1,0 +1,97 @@
+package cpuscheduling;   
+
+import java.util.Scanner;   // Import Scanner class for taking user input
+
+public class FCFS {   // Define the main class named FCFS
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);   // Create Scanner object to read user input
+
+        // Input number of processes
+        System.out.print("Enter number of processes: ");
+        int n = sc.nextInt();   // Read total number of processes
+
+        // Declare arrays to store process data
+        int[] processID = new int[n];       // Process IDs (P1, P2, ...)
+        int[] arrivalTime = new int[n];     // Arrival times (AT)
+        int[] burstTime = new int[n];       // Burst times (BT)
+        int[] completionTime = new int[n];  // Completion times (CT)
+        int[] turnaroundTime = new int[n];  // Turnaround times (TAT = CT - AT)
+        int[] waitingTime = new int[n];     // Waiting times (WT = TAT - BT)
+
+        //  Input each process’s arrival and burst time
+        for (int i = 0; i < n; i++) {
+            processID[i] = i + 1;  // Assign process ID as P1, P2, ...
+
+            System.out.print("Enter arrival time for P" + processID[i] + ": ");
+            arrivalTime[i] = sc.nextInt();  // Read arrival time
+
+            System.out.print("Enter burst time for P" + processID[i] + ": ");
+            burstTime[i] = sc.nextInt();    // Read burst time
+        }
+
+        //  Sort processes by arrival time (so CPU executes earliest arrival first)
+        for (int i = 0; i < n - 1; i++) {
+            for (int j = i + 1; j < n; j++) {
+                if (arrivalTime[i] > arrivalTime[j]) {
+                    int temp;
+
+                    // Swap arrival times
+                    temp = arrivalTime[i];
+                    arrivalTime[i] = arrivalTime[j];
+                    arrivalTime[j] = temp;
+
+                    // Swap burst times
+                    temp = burstTime[i];
+                    burstTime[i] = burstTime[j];
+                    burstTime[j] = temp;
+
+                    // Swap process IDs
+                    temp = processID[i];
+                    processID[i] = processID[j];
+                    processID[j] = temp;
+                }
+            }
+        }
+
+        //  Compute Completion Time (CT), Turnaround Time (TAT), and Waiting Time (WT)
+        int currentTime = 0;        // Keeps track of CPU time
+        double totalTAT = 0;        // Sum of all turnaround times
+        double totalWT = 0;         // Sum of all waiting times
+
+        for (int i = 0; i < n; i++) {
+            // If CPU is idle (currentTime < arrival time of next process)
+            if (currentTime < arrivalTime[i]) {
+                currentTime = arrivalTime[i];   // Jump to next process’s arrival time
+            }
+
+            // Completion time = current time + burst time
+            completionTime[i] = currentTime + burstTime[i];
+            currentTime = completionTime[i];    // Update current time
+
+            // Calculate Turnaround Time and Waiting Time
+            turnaroundTime[i] = completionTime[i] - arrivalTime[i];   // TAT = CT - AT
+            waitingTime[i] = turnaroundTime[i] - burstTime[i];        // WT = TAT - BT
+
+            // Add to totals for average calculation
+            totalTAT += turnaroundTime[i];
+            totalWT += waitingTime[i];
+        }
+
+        // Display results in tabular format
+        System.out.println("\nProcess\tAT\tBT\tCT\tTAT\tWT");
+        for (int i = 0; i < n; i++) {
+            System.out.println("P" + processID[i] + "\t" +
+                    arrivalTime[i] + "\t" +
+                    burstTime[i] + "\t" +
+                    completionTime[i] + "\t" +
+                    turnaroundTime[i] + "\t" +
+                    waitingTime[i]);
+        }
+
+        // Display averages
+        System.out.printf("\nAverage Turnaround Time: %.2f", totalTAT / n);
+        System.out.printf("\nAverage Waiting Time: %.2f\n", totalWT / n);
+
+        sc.close();   // Close the Scanner to free resources
+    }
+}
