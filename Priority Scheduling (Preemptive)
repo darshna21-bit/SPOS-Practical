@@ -1,0 +1,104 @@
+package cpuscheduling;   
+import java.util.Scanner;   // Import for user input
+
+public class Priority_Preemptive {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        // Input number of processes
+        System.out.print("Enter number of processes: ");
+        int n = sc.nextInt();
+
+        // Declare arrays
+        int[] processID = new int[n];
+        int[] arrivalTime = new int[n];
+        int[] burstTime = new int[n];
+        int[] remainingTime = new int[n];
+        int[] priority = new int[n];
+        int[] completionTime = new int[n];
+        int[] turnaroundTime = new int[n];
+        int[] waitingTime = new int[n];
+        boolean[] isCompleted = new boolean[n];
+
+        // Take input for each process
+        for (int i = 0; i < n; i++) {
+            processID[i] = i + 1;
+
+            System.out.print("Enter arrival time for P" + processID[i] + ": ");
+            arrivalTime[i] = sc.nextInt();
+
+            System.out.print("Enter burst time for P" + processID[i] + ": ");
+            burstTime[i] = sc.nextInt();
+
+            System.out.print("Enter priority for P" + processID[i] + " (smaller number = higher priority): ");
+            priority[i] = sc.nextInt();
+
+            remainingTime[i] = burstTime[i];  // Initially, remaining = full burst time
+        }
+
+        // Initialize variables
+        int completed = 0;
+        int currentTime = 0;
+        float totalTAT = 0, totalWT = 0;
+
+        // Main scheduling loop
+        while (completed != n) {
+            int currentProcess = -1;
+            int highestPriority = Integer.MAX_VALUE;
+
+            // 🔍 Find the process with highest priority among arrived processes
+            for (int i = 0; i < n; i++) {
+                if (arrivalTime[i] <= currentTime && remainingTime[i] > 0) {
+                    if (priority[i] < highestPriority) {
+                        highestPriority = priority[i];
+                        currentProcess = i;
+                    } else if (priority[i] == highestPriority && arrivalTime[i] < arrivalTime[currentProcess]) {
+                        currentProcess = i;  // Break ties using arrival time
+                    }
+                }
+            }
+
+            // ⏳ If no process is ready, increment currentTime
+            if (currentProcess == -1) {
+                currentTime++;
+                continue;
+            }
+
+            // 🚀 Execute the selected process for 1 time unit
+            remainingTime[currentProcess]--;
+            currentTime++;
+
+            // ✅ Check if process finished
+            if (remainingTime[currentProcess] == 0) {
+                isCompleted[currentProcess] = true;
+                completed++;
+
+                completionTime[currentProcess] = currentTime;
+
+                turnaroundTime[currentProcess] = completionTime[currentProcess] - arrivalTime[currentProcess];
+                waitingTime[currentProcess] = turnaroundTime[currentProcess] - burstTime[currentProcess];
+
+                totalTAT += turnaroundTime[currentProcess];
+                totalWT += waitingTime[currentProcess];
+            }
+        }
+
+        //  Print results
+        System.out.println("\nProcess\tAT\tBT\tPri\tCT\tTAT\tWT");
+        for (int i = 0; i < n; i++) {
+            System.out.println("P" + processID[i] + "\t" +
+                    arrivalTime[i] + "\t" +
+                    burstTime[i] + "\t" +
+                    priority[i] + "\t" +
+                    completionTime[i] + "\t" +
+                    turnaroundTime[i] + "\t" +
+                    waitingTime[i]);
+        }
+
+        // Print averages
+        System.out.printf("\nAverage Turnaround Time: %.2f", totalTAT / n);
+        System.out.printf("\nAverage Waiting Time: %.2f\n", totalWT / n);
+
+        sc.close();  // Close Scanner
+    }
+}
