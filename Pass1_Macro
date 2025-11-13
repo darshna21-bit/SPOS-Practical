@@ -1,0 +1,125 @@
+package SLP1;
+import java.io.*;
+import java.util.*;
+
+public class MacroPass1 {
+
+			    public static void main(String[] args) throws IOException {
+		        
+			    				String[] sourceCode = {
+			    	            "MACRO",
+			    	            "INCR &X, &Y, &REG=AREG",
+			    	            "MOVER #3, &X",
+			    	            "ADD &REG, &Y",
+			    	            "MOVEM &REG, &X",
+			    	            "MEND",
+			    	            "MACRO",
+			    	            "DECR &A, &B, &REG=BREG",
+			    	            "MOVER &REG, &A",
+			    	            "SUB &REG, &B",
+			    	            "MOVEM &REG, &A",
+			    	            "MEND",
+			    	            "START 100",
+			    	            "READ N1",
+			    	            "READ N2",
+			    	            "INCR N1, N2, REG=CREG",
+			    	            "DECR N1, N2",
+			    	            "STOP",
+			    	            "N1 DS 1",
+			    	            "N2 DS 1",
+			    	            "END"
+			    	        };
+
+			    	        // File Writers
+			    	        BufferedWriter MNT = new BufferedWriter(new FileWriter("mnt.txt"));
+			    	        BufferedWriter MDT = new BufferedWriter(new FileWriter("mdt.txt"));
+			    	        BufferedWriter intermediate = new BufferedWriter(new FileWriter("intermediate.txt"));
+			    	        
+			    	        // Variables
+			    	        Map<String, Integer> macroTable = new HashMap<>();
+			    	        List<String> alaFileNames = new ArrayList<>(); // To keep track of ALAs for printing later
+			    	        int mdtp = 0;
+			    	        boolean insideMacro = false;
+			    	        String currentMacroName = null;
+			    	        BufferedWriter alaWriter = null;
+
+			    	        // --- PROCESSING LOGIC ---
+			    	        for (String line : sourceCode) {
+			    	            String[] parts = line.trim().split("\\s+");
+
+			    	            if (parts[0].equals("MACRO")) {
+			    	                insideMacro = true;
+			    	                continue;
+			    	            }
+
+			    	            if (insideMacro) {
+			    	                if (currentMacroName == null) {
+			    	                    // Macro Prototype Line
+			    	                    currentMacroName = parts[0];
+			    	                    MNT.write(currentMacroName + "\t" + mdtp + "\n");
+			    	                    macroTable.put(currentMacroName, mdtp);
+			    	                    
+			    	                    // Handle ALA
+			    	                    String alaName = "ALA_" + currentMacroName + ".txt";
+			    	                    alaWriter = new BufferedWriter(new FileWriter(alaName));
+			    	                    alaFileNames.add(alaName); // Save name for printing later
+			    	                    
+			    	                    for (int i = 1; i < parts.length; i++) {
+			    	                        String arg = parts[i].replace(",", "");
+			    	                        if (arg.contains("=")) {
+			    	                            String[] s = arg.split("=");
+			    	                            alaWriter.write(s[0] + "\n");
+			    	                        } else {
+			    	                            alaWriter.write(arg + "\n");
+			    	                        }
+			    	                    }
+			    	                    alaWriter.flush();
+			    	                    alaWriter.close();
+			    	                } else {
+			    	                    // Macro Body
+			    	                    if (parts[0].equals("MEND")) {
+			    	                        MDT.write("MEND\n");
+			    	                        insideMacro = false;
+			    	                        currentMacroName = null;
+			    	                    } else {
+			    	                        MDT.write(line + "\n");
+			    	                    }
+			    	                    mdtp++;
+			    	                }
+			    	            } else {
+			    	                // Normal Code
+			    	                intermediate.write(line + "\n");
+			    	            }
+			    	        }
+
+			    	        MNT.close();
+			    	        MDT.close();
+			    	        intermediate.close();
+
+			    	        // --- TERMINAL OUTPUT SECTION ---
+			    	        System.out.println("\n******** MACRO PASS-I OUTPUT ********\n");
+
+			    	        printFileContent("MNT (Macro Name Table)", "mnt.txt");
+			    	        printFileContent("MDT (Macro Definition Table)", "mdt.txt");
+
+			    	        for (String alaFile : alaFileNames) {
+			    	            printFileContent("ALA for " + alaFile.replace("ALA_", "").replace(".txt", ""), alaFile);
+			    	        }
+
+			    	        printFileContent("INTERMEDIATE CODE", "intermediate.txt");
+			    	    }
+
+			    	    // Helper method to read and print file content
+			    	    private static void printFileContent(String title, String fileName) throws IOException {
+			    	        System.out.println("------------------------------");
+			    	        System.out.println("   " + title);
+			    	        System.out.println("------------------------------");
+			    	        try (BufferedReader br = new BufferedReader(new FileReader(fileName))) {
+			    	            String line;
+			    	            while ((line = br.readLine()) != null) {
+			    	                System.out.println(line);
+			    	            }
+			    	        }
+			    	        System.out.println(); 
+			    	    }
+			    	}
