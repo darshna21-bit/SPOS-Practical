@@ -1,0 +1,108 @@
+package SLP1;
+import java.io.*;
+import java.util.*;
+
+public class PASS1 {
+
+			    public static void main(String[] args) throws IOException {
+
+		        String[][] code = {
+		            {"", "START", "100", ""},
+		            {"", "MOVER", "AREG", "NUM1"},
+		            {"", "SUB", "AREG", "NUM2"},
+		            {"", "MOVEM", "AREG", "DIFF"},
+		            {"", "STOP", "", ""},
+		            {"NUM1", "DC", "15", ""},
+		            {"NUM2", "DC", "7", ""},
+		            {"DIFF", "DS", "1", ""},
+		            {"", "END", "", ""}
+		        };
+
+		        // MOT
+		        Map<String, String> mot = Map.of(
+		            "STOP", "00", "ADD", "01", "SUB", "02", "MULT", "03",
+		            "MOVER", "04", "MOVEM", "05", "COMP", "06", "BC", "07", "DIV", "08"
+		        );
+
+		        // POT
+		        Map<String, String> pot = Map.of(
+		            "START", "01", "END", "02", "ORIGIN", "03", "EQU", "04", "LTORG", "05"
+		        );
+
+		        // DL
+		        Map<String, String> dl = Map.of("DC", "01", "DS", "02");
+
+		        // Registers
+		        Map<String, String> reg = Map.of("AREG", "1", "BREG", "2", "CREG", "3", "DREG", "4");
+
+		        int lc = Integer.parseInt(code[0][2]); // START address
+		        List<String[]> symtab = new ArrayList<>();
+		        List<String> ic = new ArrayList<>();
+
+		        for (String[] line : code) {
+		            String label = line[0], opcode = line[1], op1 = line[2], op2 = line[3];
+
+		            if (!label.isEmpty()) {
+		                boolean exists = false;
+		                for (String[] s : symtab) {
+		                    if (s[0].equals(label)) {
+		                        s[1] = String.valueOf(lc); // update address
+		                        exists = true;
+		                        break;
+		                    }
+		                }
+		            if (!exists) {
+		                symtab.add(new String[]{label, String.valueOf(lc)});
+		            }
+		        }
+
+
+		            if (pot.containsKey(opcode)) {
+		                ic.add("(AD," + pot.get(opcode) + ")" + (op1.isEmpty() ? "" : " (C," + op1 + ")"));
+		                if (opcode.equals("START")) lc = Integer.parseInt(op1);
+		            } 
+		            else if (dl.containsKey(opcode)) {
+		                ic.add("(DL," + dl.get(opcode) + ") (C," + op1 + ")");
+		                lc++;
+		            } 
+		            else if (mot.containsKey(opcode)) {
+		                StringBuilder lineIC = new StringBuilder("(IS," + mot.get(opcode) + ") ");
+		                if (reg.containsKey(op1)) lineIC.append("(" + reg.get(op1) + ") ");
+		                boolean symbolFound = false;
+		                for (int j = 0; j < symtab.size(); j++) {
+		                    if (op2.equals(symtab.get(j)[0])) {
+		                        lineIC.append("(S," + (j + 1) + ")");
+		                        symbolFound = true;
+		                        break;
+		                    }
+		                }
+		                if (!symbolFound && !op2.isEmpty()) {
+		                    symtab.add(new String[]{op2, "?"});
+		                    lineIC.append("(S," + symtab.size() + ")");
+		                }
+		                ic.add(lineIC.toString());
+		                lc++;
+		            } 
+		            else if (opcode.equals("STOP")) {
+		                ic.add("(IS,00)");
+		                lc++;
+		            }
+		        }
+
+		        // Write intermediate code
+		        try (BufferedWriter bw = new BufferedWriter(new FileWriter("intermediate.txt"))) {
+		            for (String s : ic) bw.write(s + "\n");
+		        }
+
+		        // Write symbol table
+		        try (BufferedWriter bw = new BufferedWriter(new FileWriter("symbol.txt"))) {
+		            for (String[] s : symtab) bw.write(s[0] + " " + s[1] + "\n");
+		        }
+
+		        System.out.println("Pass-I completed. Generated:");
+		        System.out.println("→ intermediate.txt");
+		        System.out.println("→ symbol.txt");
+		        System.out.println("cwd: " + new java.io.File(".").getAbsolutePath());
+		        System.out.println("Will write: " + new java.io.File("intermediate.txt").getAbsolutePath());
+		    }
+		}
